@@ -1,7 +1,5 @@
 import requests
 
-
-
 def fetch_flight_data(token, origin, destination, departure_date):
 
     # Search for flights
