@@ -129,12 +129,11 @@ services:
       retries: 5
       start_period: 30s
     environment:
+      <<: *airflow-common-env
       PYTHONPATH: /opt/airflow
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
-      wait-for-postgres:
-        condition: service_completed_successfully
       airflow-init:
         condition: service_completed_successfully
 
@@ -148,12 +147,11 @@ services:
       retries: 5
       start_period: 30s
     environment:
+      <<: *airflow-common-env
       PYTHONPATH: /opt/airflow
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
-      wait-for-postgres:
-        condition: service_completed_successfully
       airflow-init:
         condition: service_completed_successfully
 
@@ -247,7 +245,7 @@ services:
         fi
         mkdir -p /sources/logs /sources/dags /sources/plugins
         chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
-        exec /entrypoint bash -c "airflow db upgrade && airflow users create \
+        exec /entrypoint bash -c "airflow db init && airflow users create \
           --username airflow --password airflow --firstname Airflow --lastname Admin --role Admin --email admin@example.org && airflow version"
 
     # yamllint enable rule:line-length
@@ -301,13 +299,6 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-
-  wait-for-postgres:
-    image: busybox:1.31.1
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: sh -c 'until nc -z postgres 5432; do echo waiting for postgres; sleep 1; done;'
 
 volumes:
   postgres-db-volume:
